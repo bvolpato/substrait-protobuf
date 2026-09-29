@@ -41,6 +41,10 @@ jobs:
           else
             version="$(gh api repos/substrait-io/substrait/releases/latest --jq '.tag_name')"
           fi
+          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected a release tag such as v0.102.0, got: $version" >&2
+            exit 1
+          fi
           printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
 
       - name: Install Buf
@@ -52,8 +56,9 @@ jobs:
 
       - name: Generate and publish Go protobufs
         env:
+          SPEC_VERSION: ${{ steps.spec.outputs.version }}
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: github-actions[bot]
-        run: ./generate-go.sh "${{ steps.spec.outputs.version }}"
+        run: ./generate-go.sh "$SPEC_VERSION"
