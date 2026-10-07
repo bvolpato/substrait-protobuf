@@ -21,7 +21,9 @@ will:
 Users can then access the code by referencing the tag.
 
 The `Release Go` workflow checks the latest Substrait release daily and skips
-versions that already have a `go/<version>` tag. A `workflow_dispatch` input
+versions that already have a `go/<version>` tag on `origin`. A local tag left by a
+failed publication is reported as an error, so inspect the previous release
+attempt before retrying. A `workflow_dispatch` input
 can be used to generate a specific release when a scheduled run needs to be
 replayed.
 

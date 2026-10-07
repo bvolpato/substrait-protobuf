@@ -43,16 +43,32 @@ fi
 GO_VERSION_TAG="go/$SPEC_VERSION"
 BRANCH_NAME="releases/$GO_VERSION_TAG"
 
-# A tag is the publication marker. Do not regenerate or mutate an existing release.
-if git rev-parse --verify --quiet "refs/tags/$GO_VERSION_TAG" >/dev/null 2>&1 || \
-    git ls-remote --exit-code --tags origin "refs/tags/$GO_VERSION_TAG" >/dev/null 2>&1; then
+# Only a remote tag confirms that publication succeeded.
+if git ls-remote --exit-code --tags origin "refs/tags/$GO_VERSION_TAG" >/dev/null; then
     echo "✅ Protobufs for $SPEC_VERSION already exist"
     exit 0
+else
+    tag_status=$?
+    if [ "$tag_status" -ne 2 ]; then
+        echo "❌ Unable to check published release tags" >&2
+        exit 4
+    fi
 fi
 
-if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+if git rev-parse --verify --quiet "refs/tags/$GO_VERSION_TAG" >/dev/null 2>&1; then
+    echo "❌ Local tag $GO_VERSION_TAG exists but has not been published; inspect the previous release attempt before retrying" >&2
+    exit 4
+fi
+
+if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null; then
     echo "❌ Release branch $BRANCH_NAME exists without tag $GO_VERSION_TAG" >&2
     exit 4
+else
+    branch_status=$?
+    if [ "$branch_status" -ne 2 ]; then
+        echo "❌ Unable to check published release branches" >&2
+        exit 4
+    fi
 fi
 
 if [ -n "$(git status --porcelain)" ]; then
