@@ -23,13 +23,11 @@ case "$SPEC_VERSION" in
         echo "❌ Spec version must not contain '/': $SPEC_VERSION" >&2
         exit 1
         ;;
-    v[0-9]*.[0-9]*.[0-9]*)
-        ;;
-    *)
-        echo "❌ Spec version must be a release tag such as v0.102.0: $SPEC_VERSION" >&2
-        exit 1
-        ;;
 esac
+if ! expr "$SPEC_VERSION" : 'v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null; then
+    echo "❌ Spec version must be a release tag such as v0.102.0: $SPEC_VERSION" >&2
+    exit 1
+fi
 
 # Use git ls-remote to check if the specific tag exists
 echo "Checking if spec version $SPEC_VERSION exists in $SPEC_REPO_URL"
